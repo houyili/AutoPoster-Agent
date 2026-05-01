@@ -15,6 +15,7 @@ import sys
 import glob
 import argparse
 import subprocess
+import shutil
 
 try:
     import keyring
@@ -43,16 +44,28 @@ def load_file(filepath):
 
 
 def discover_figures(figures_dir):
-    """Scan a directory for image files and return a formatted listing."""
+    """Scan a directory for image files, copy them to local 'figures/', and return listing."""
     if not figures_dir or not os.path.isdir(figures_dir):
         return ""
+    
+    local_fig_dir = "figures"
+    os.makedirs(local_fig_dir, exist_ok=True)
+    
     extensions = ("*.png", "*.jpg", "*.jpeg", "*.pdf", "*.svg")
     files = []
     for ext in extensions:
         files.extend(glob.glob(os.path.join(figures_dir, ext)))
     if not files:
         return ""
-    listing = "\n".join(f"  - {os.path.basename(f)}" for f in sorted(files))
+    
+    copied_files = []
+    for f in files:
+        basename = os.path.basename(f)
+        dest_path = os.path.join(local_fig_dir, basename)
+        shutil.copy2(f, dest_path)
+        copied_files.append(basename)
+        
+    listing = "\n".join(f"  - figures/{f}" for f in sorted(copied_files))
     return f"\n\nAVAILABLE FIGURES (use these exact filenames in \\includegraphics):\n{listing}\n"
 
 
