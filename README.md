@@ -20,6 +20,22 @@ Born from a rigorous ICLR 2026 submission workflow, this tool provides AI Agents
 | **Linux** | `install.sh` | ✅ Secret Service | `cargo install tectonic` or `apt install texlive-full` | ✅ Fully supported |
 | **Windows** | Manual (see below) | ✅ Credential Locker | [Tectonic releases](https://github.com/tectonic-typesetting/tectonic/releases) | ⚠️ Manual setup |
 
+## Prerequisites
+
+> ⚠️ **Required System Dependency**: You need a LaTeX compiler installed on your system. We recommend **[Tectonic](https://tectonic-typesetting.github.io/)** — it auto-downloads all LaTeX packages on first run and requires no configuration.
+>
+> ```bash
+> # macOS
+> brew install tectonic
+>
+> # Linux (via Cargo)
+> cargo install tectonic
+>
+> # Alternative: pdflatex (requires texlive-full, ~4GB)
+> # macOS: brew install --cask mactex
+> # Ubuntu: sudo apt install texlive-full
+> ```
+
 ## Installation & Setup
 
 ### Quick Start (macOS / Linux)
