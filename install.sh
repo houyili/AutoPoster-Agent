@@ -2,38 +2,59 @@
 set -e
 
 echo "========================================="
-echo "AutoPoster-Agent One-Click Installer"
+echo "  AutoPoster-Agent One-Click Installer"
 echo "========================================="
 
-# 1. Check Python
+# 1. Check Python version (require 3.8+)
 if ! command -v python3 &> /dev/null; then
     echo "❌ Error: python3 is not installed."
     exit 1
 fi
 
-# 2. Check Tectonic
-if ! command -v tectonic &> /dev/null; then
-    echo "⚠️ Warning: tectonic LaTeX compiler is not installed."
-    echo "Please install it via: brew install tectonic (macOS) or refer to their docs."
-    echo "Continuing anyway..."
+PY_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+PY_MAJOR=$(echo "$PY_VERSION" | cut -d. -f1)
+PY_MINOR=$(echo "$PY_VERSION" | cut -d. -f2)
+if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 8 ]; }; then
+    echo "❌ Error: Python 3.8+ is required (found $PY_VERSION)."
+    exit 1
+fi
+echo "✅ Python $PY_VERSION detected."
+
+# 2. Check LaTeX compiler
+if command -v tectonic &> /dev/null; then
+    echo "✅ tectonic LaTeX compiler found."
+elif command -v pdflatex &> /dev/null; then
+    echo "✅ pdflatex found (ensure beamerposter, tcolorbox packages are installed)."
+else
+    echo "⚠️  Warning: No LaTeX compiler found (tectonic or pdflatex)."
+    echo "   Install via: brew install tectonic (macOS) or cargo install tectonic"
+    echo "   Continuing anyway..."
 fi
 
 # 3. Create Virtual Environment
-echo "\n📦 Creating Python virtual environment (.venv)..."
+printf "\n📦 Creating Python virtual environment (.venv)...\n"
 python3 -m venv .venv
 source .venv/bin/activate
 
 # 4. Install Dependencies
 echo "📦 Installing Python dependencies..."
-pip install --upgrade pip
-pip install -r requirements.txt
+pip install --upgrade pip -q
+pip install -r requirements.txt -q
+echo "✅ Dependencies installed."
 
-# 5. Setup Keychain
-echo "\n🔐 Launching Secure Keychain Setup..."
-python setup_keychain.py
+# 5. Optional Keychain Setup
+printf "\n"
+read -p "🔐 Set up your LLM API key now? (y/N): " setup_key
+if [ "$setup_key" = "y" ] || [ "$setup_key" = "Y" ]; then
+    python setup_keychain.py
+else
+    echo "⏭️  Skipping keychain setup. You can run 'python setup_keychain.py' later."
+fi
 
-echo "\n========================================="
+printf "\n=========================================\n"
 echo "✅ Installation Complete!"
-echo "To activate the environment in the future, run: source .venv/bin/activate"
-echo "To generate a poster, run: python generate_poster.py outline.md"
+echo ""
+echo "  Activate:  source .venv/bin/activate"
+echo "  Generate:  python generate_poster.py examples/sample_outline.md"
+echo "  Help:      python generate_poster.py --help"
 echo "========================================="

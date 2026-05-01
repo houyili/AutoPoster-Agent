@@ -132,20 +132,23 @@ Item 2 & Description 2 \\
 \begin{column}{0.24\textwidth}
 
 \begin{block}{3. {{SECTION_3_TITLE}} (Figures)}
-% SKILL PITFALL FIX: Minipage figures instead of float figures
-\begin{figure}
+% SKILL PITFALL FIX: NEVER use \begin{figure} inside \begin{block}.
+% Use bare center + minipage to avoid ghost padding / Overfull \vbox.
+\begin{center}
 \begin{minipage}[t]{0.48\linewidth}
     \centering
-    % Ensure images have white backgrounds using fix_colors.py before embedding
+    % Ensure images have white backgrounds using clean_figure_backgrounds.py before embedding
     \includegraphics[width=\linewidth, keepaspectratio]{placeholder_image1.png}
-    \caption{\scriptsize {{FIGURE_1_CAPTION}}}
+    \vspace{-1ex}
+    {\scriptsize \textbf{Figure 1:} {{FIGURE_1_CAPTION}}}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.48\linewidth}
     \centering
     \includegraphics[width=\linewidth, keepaspectratio]{placeholder_image2.png}
-    \caption{\scriptsize {{FIGURE_2_CAPTION}}}
+    \vspace{-1ex}
+    {\scriptsize \textbf{Figure 2:} {{FIGURE_2_CAPTION}}}
 \end{minipage}
-\end{figure}
+\end{center}
 \end{block}
 
 \end{column}

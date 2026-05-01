@@ -1,12 +1,39 @@
+#!/usr/bin/env python3
+"""
+AutoPoster-Agent: Automated Academic Poster Generator
+
+Reads your outline, retrieves your API key from the system keychain,
+calls an LLM to populate the LaTeX template following the SOP,
+and compiles the result into a PDF.
+
+Supports any OpenAI-compatible API endpoint (OpenAI, Anthropic via proxy,
+local vLLM, Ollama, etc.) via --base-url.
+"""
+
 import os
 import sys
+import glob
+import argparse
 import subprocess
-import keyring
-from openai import OpenAI
+
+try:
+    import keyring
+except ImportError:
+    print("❌ Error: 'keyring' not installed. Run: pip install keyring")
+    sys.exit(1)
+
+try:
+    from openai import OpenAI
+except ImportError:
+    print("❌ Error: 'openai' not installed. Run: pip install openai")
+    sys.exit(1)
 
 SERVICE_NAME = "AutoPoster-Agent"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def load_file(filepath):
+    """Load a text file, exit with error if not found."""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
@@ -14,90 +41,170 @@ def load_file(filepath):
         print(f"❌ Error: File not found - {filepath}")
         sys.exit(1)
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: python generate_poster.py <path_to_outline.md>")
-        sys.exit(1)
-        
-    outline_path = sys.argv[1]
-    output_tex = "poster.tex"
-    
-    print("=========================================")
-    print("AutoPoster-Agent: Generating Poster")
-    print("=========================================")
-    
-    # 1. Get API Key from Keychain
-    api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY")
-    if not api_key:
-        print("❌ Error: OpenAI API Key not found in the System Keychain.")
-        print("Please run 'python setup_keychain.py' first.")
-        sys.exit(1)
-        
-    # 2. Load Assets
-    print(f"📄 Loading outline from: {outline_path}...")
-    outline_content = load_file(outline_path)
-    sop_content = load_file("templates/prompt_sops/agent_sop.md")
-    template_content = load_file("templates/academic_poster_template.tex")
-    
-    # 3. Call LLM
-    print("🤖 Calling OpenAI API (gpt-4o)...")
-    client = OpenAI(api_key=api_key)
-    
-    prompt = f"""
-You are an expert LaTeX typesetter and academic poster designer.
-I have provided you with a Standard Operating Procedure (SOP) and a LaTeX template.
 
-Here is the SOP:
+def discover_figures(figures_dir):
+    """Scan a directory for image files and return a formatted listing."""
+    if not figures_dir or not os.path.isdir(figures_dir):
+        return ""
+    extensions = ("*.png", "*.jpg", "*.jpeg", "*.pdf", "*.svg")
+    files = []
+    for ext in extensions:
+        files.extend(glob.glob(os.path.join(figures_dir, ext)))
+    if not files:
+        return ""
+    listing = "\n".join(f"  - {os.path.basename(f)}" for f in sorted(files))
+    return f"\n\nAVAILABLE FIGURES (use these exact filenames in \\includegraphics):\n{listing}\n"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="AutoPoster-Agent: Generate an academic poster from an outline."
+    )
+    parser.add_argument("outline", help="Path to the outline markdown file.")
+    parser.add_argument(
+        "-o", "--output", default="poster.tex",
+        help="Output .tex filename (default: poster.tex)"
+    )
+    parser.add_argument(
+        "--model", default="gpt-4o",
+        help="LLM model name (default: gpt-4o). Works with any OpenAI-compatible API."
+    )
+    parser.add_argument(
+        "--base-url", default=None,
+        help="Custom API base URL for OpenAI-compatible endpoints "
+             "(e.g., http://localhost:8000/v1 for vLLM, or Anthropic proxy)."
+    )
+    parser.add_argument(
+        "--figures-dir", default=None,
+        help="Directory containing figure images to embed. "
+             "Filenames will be listed in the prompt so the LLM references them correctly."
+    )
+    parser.add_argument(
+        "--api-key", default=None,
+        help="API key (overrides keychain). NOT recommended — use keychain instead."
+    )
+    parser.add_argument(
+        "--no-compile", action="store_true",
+        help="Skip automatic PDF compilation with tectonic."
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    print("=========================================")
+    print("  AutoPoster-Agent: Generating Poster")
+    print("=========================================")
+
+    # 1. Get API Key
+    api_key = args.api_key
+    if not api_key:
+        api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY")
+    if not api_key:
+        print("❌ Error: API Key not found.")
+        print("   Option 1: Run 'python setup_keychain.py' to store it securely.")
+        print("   Option 2: Pass --api-key <KEY> (not recommended for security).")
+        sys.exit(1)
+
+    # 2. Load Assets
+    print(f"📄 Loading outline: {args.outline}")
+    outline_content = load_file(args.outline)
+
+    sop_path = os.path.join(SCRIPT_DIR, "templates", "prompt_sops", "agent_sop.md")
+    template_path = os.path.join(SCRIPT_DIR, "templates", "academic_poster_template.tex")
+    sop_content = load_file(sop_path)
+    template_content = load_file(template_path)
+
+    # 3. Discover figures
+    figures_listing = discover_figures(args.figures_dir)
+    if figures_listing:
+        print(f"🖼️  Found figures in: {args.figures_dir}")
+
+    # 4. Build prompt
+    prompt = f"""You are an expert LaTeX typesetter and academic poster designer.
+
+STANDARD OPERATING PROCEDURE (follow strictly):
 {sop_content}
 
-Here is the template:
+LATEX TEMPLATE (fill in the placeholders):
 ```latex
 {template_content}
 ```
 
-Here is my outline:
+USER'S POSTER OUTLINE:
 {outline_content}
+{figures_listing}
 
 TASK:
-Generate the final LaTeX code for the poster by filling in the template using the outline.
-Adhere strictly to the SOP rules (especially regarding layout overflow and no hallucinations).
-Output ONLY the raw LaTeX code block. Do not include markdown formatting or explanations.
+1. Read the SOP rules carefully — especially the anti-patterns around ghost padding.
+2. Fill in the LaTeX template using the outline content.
+3. Replace ALL {{{{PLACEHOLDER}}}} variables with real content from the outline.
+4. Reference actual figure filenames from the AVAILABLE FIGURES list above.
+5. Output ONLY raw LaTeX code. No markdown fences, no explanations.
 """
+
+    # 5. Call LLM
+    print(f"🤖 Calling {args.model}...")
+    client_kwargs = {"api_key": api_key}
+    if args.base_url:
+        client_kwargs["base_url"] = args.base_url
+    client = OpenAI(**client_kwargs)
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model=args.model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
+            max_tokens=16384,
         )
-        
-        # Clean markdown code blocks if the model wrapped it
+
         latex_code = response.choices[0].message.content
-        if latex_code.startswith("```latex"):
-            latex_code = latex_code[8:]
-        if latex_code.startswith("```"):
-            latex_code = latex_code[3:]
-        if latex_code.endswith("```"):
-            latex_code = latex_code[:-3]
-            
-        with open(output_tex, 'w', encoding='utf-8') as f:
-            f.write(latex_code.strip())
-            
-        print(f"✅ Generated LaTeX successfully saved to: {output_tex}")
-        
+
+        # Strip markdown code fences if present
+        for fence in ("```latex\n", "```tex\n", "```\n"):
+            if latex_code.startswith(fence):
+                latex_code = latex_code[len(fence):]
+                break
+        if latex_code.rstrip().endswith("```"):
+            latex_code = latex_code.rstrip()[:-3]
+
+        with open(args.output, 'w', encoding='utf-8') as f:
+            f.write(latex_code.strip() + "\n")
+
+        print(f"✅ LaTeX saved to: {args.output}")
+
     except Exception as e:
-        print(f"❌ OpenAI API Error: {e}")
+        print(f"❌ API Error: {e}")
         sys.exit(1)
-        
-    # 4. Compile
-    print("🔨 Compiling PDF with Tectonic...")
-    try:
-        subprocess.run(["tectonic", output_tex], check=True)
-        print("🎉 Success! PDF compiled successfully.")
-    except subprocess.CalledProcessError:
-        print("⚠️ Warning: Tectonic compilation failed. Please check the terminal output for LaTeX errors.")
-    except FileNotFoundError:
-        print("⚠️ Warning: 'tectonic' not found. Please compile the poster.tex manually.")
+
+    # 6. Compile
+    if not args.no_compile:
+        print("🔨 Compiling PDF with tectonic...")
+        try:
+            result = subprocess.run(
+                ["tectonic", args.output],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                # Check for Overfull warnings (SOP rule 3.4)
+                if "Overfull" in result.stderr:
+                    print("⚠️  Compiled successfully, but Overfull warnings detected:")
+                    for line in result.stderr.splitlines():
+                        if "Overfull" in line:
+                            print(f"   {line.strip()}")
+                else:
+                    pdf_name = args.output.replace(".tex", ".pdf")
+                    print(f"🎉 Success! PDF generated: {pdf_name}")
+            else:
+                print("⚠️  Compilation failed. Errors:")
+                print(result.stderr[-2000:] if len(result.stderr) > 2000 else result.stderr)
+        except FileNotFoundError:
+            print("⚠️  'tectonic' not found. Please compile manually:")
+            print(f"   tectonic {args.output}")
+    else:
+        print("⏭️  Skipping compilation (--no-compile).")
+
 
 if __name__ == "__main__":
     main()
