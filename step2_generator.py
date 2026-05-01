@@ -5,7 +5,6 @@ AutoPoster-Agent Step 2: Generator Agent
 Reads your outline, retrieves your API key, and calls an LLM to populate 
 the LaTeX template following the SOP. If a problem.md file exists (from Step 3), 
 it will use it to correct the previous mistakes.
-"""
 
 Supports any OpenAI-compatible API endpoint (OpenAI, Anthropic via proxy,
 local vLLM, Ollama, etc.) via --base-url.
