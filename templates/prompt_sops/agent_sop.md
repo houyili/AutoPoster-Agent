@@ -45,14 +45,17 @@ python3 tools/clean_figure_backgrounds.py raw_figure1.png raw_figure2.png
 ```
 
 ### B. Build Pipeline
-Use the `tectonic` engine to compile the LaTeX, as it automatically fetches required packages. Use macOS `sips` (or ImageMagick `convert`) to verify the output.
+Use the `tectonic` engine to compile the LaTeX, as it automatically fetches required packages. Use macOS `sips`, Linux `pdftoppm`, or ImageMagick to verify the output.
 
 ```bash
 # Compile LaTeX
 tectonic poster.tex
 
-# Convert PDF to PNG for visual verification
+# Convert PDF to PNG for visual verification (macOS)
 sips -s format png poster.pdf --out poster.png
+
+# Convert PDF to PNG (Linux / ImageMagick)
+convert -density 300 poster.pdf poster.png
 ```
 
 By following this skill prompt and utilizing the provided template, you will produce a flawlessly aligned, structurally sound, and data-accurate academic poster.
