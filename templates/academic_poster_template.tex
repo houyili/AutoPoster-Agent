@@ -1,0 +1,244 @@
+\documentclass[final]{beamer}
+
+% ====================
+% Packages
+% ====================
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+% Set custom poster size (185cm x 90cm)
+\usepackage[orientation=landscape,size=custom,width=185,height=90,scale=1.45]{beamerposter}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amsthm,amssymb,latexsym}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shadows}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{colortbl}
+
+% ====================
+% Theme settings - GREEN THEME
+% ====================
+\mode<presentation>{\usetheme{default}}
+\usecolortheme{spruce}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+\setbeamercolor{block title}{bg=black!60!green,fg=white}
+\setbeamercolor{block body}{bg=green!5!white,fg=black}
+\setbeamercolor{headline}{bg=black!70!green,fg=white}
+\setbeamerfont{block title}{size=\Large,series=\bfseries}
+
+% Custom Block formatting to eliminate ghost padding
+\setbeamertemplate{block begin}{
+  \vskip1ex
+  \begin{beamercolorbox}[rounded=true,shadow=true,leftskip=1cm,colsep*=.75ex]{block title}%
+    \usebeamerfont*{block title}\insertblocktitle
+  \end{beamercolorbox}%
+  {\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5pt}}%
+  \usebeamerfont{block body}%
+  \begin{beamercolorbox}[rounded=true,shadow=true,colsep*=.75ex,sep=1ex,vmode]{block body}%
+    \ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.75ex}\vbox{}%
+}
+\setbeamertemplate{block end}{\end{beamercolorbox}\vskip2ex}
+
+% ====================
+% Title / Author Configuration
+% ====================
+\title{{{PAPER_TITLE}}}
+\author{{{AUTHOR_LIST}}}
+\institute{\textbf{{{CONFERENCE_NAME}} Oral Presentation} \quad $\cdot$ \quad \url{{{PROJECT_URL}}}}
+
+\begin{document}
+\begin{frame}{} 
+
+% ====================
+% Header Section
+% ====================
+\begin{beamercolorbox}[wd=\paperwidth,leftskip=1cm,rightskip=1cm]{headline}
+  \begin{columns}[T]
+    % Left side: Title and Authors
+    \begin{column}{0.73\linewidth}
+      \raggedright
+      \usebeamercolor{title in headline}{\color{fg}\textbf{\Huge{\inserttitle}}\\[1.5ex]}
+      \usebeamercolor{author in headline}{\color{fg}\Large{\insertauthor}}
+    \end{column}
+    % Right side: Badge (Aligned perfectly to top)
+    \begin{column}{0.25\linewidth}
+      % SKILL PITFALL FIX: Use negative vspace to align tcolorbox with Huge text
+      \vspace{-1.5ex}
+      \begin{tcolorbox}[colback=black!50!green,colframe=white,arc=6pt,left=8pt,right=8pt,top=12pt,bottom=12pt]
+        \centering
+        % SKILL PITFALL FIX: Use scalebox inside for maximum size impact
+        \textcolor{white}{\scalebox{1.1}{\Huge\textbf{{{CONFERENCE_NAME}} $\cdot$ {{PRESENTATION_TYPE}}}}}\\[0.6em]
+        \textcolor{white}{\large\texttt{{{PROJECT_URL}}}}
+      \end{tcolorbox}
+    \end{column}
+  \end{columns}
+\end{beamercolorbox}
+\vspace{0.3cm}
+
+% ====================
+% Body Columns (4-Column Layout)
+% ====================
+\begin{columns}[t]
+
+% --------------------------------------------------------
+% Column 1
+% --------------------------------------------------------
+\begin{column}{0.23\textwidth}
+
+\begin{block}{1. {{SECTION_1_TITLE}}}
+\small
+\begin{itemize}
+    % SKILL PITFALL FIX: itemsep=0pt to save vertical space
+    \setlength{\itemsep}{0pt}
+    \item {{SECTION_1_POINT_1}}
+    \item {{SECTION_1_POINT_2}}
+\end{itemize}
+
+\begin{tcolorbox}[colback=green!10!white,colframe=green!50!black,title=\textbf{\large The Core Highlight}]
+\begin{center}
+\textcolor{red}{\large \textit{{{CORE_HIGHLIGHT_CLAIM}}}}
+\end{center}
+\end{tcolorbox}
+\end{block}
+
+\vspace{-2ex} % Negative vspace for tighter packing
+
+\begin{block}{2. {{SECTION_2_TITLE}}}
+\vspace{-1ex}
+% SKILL PITFALL FIX: Never use \begin{table} inside a block. Use center + tabularx.
+\begin{center}
+\footnotesize
+\renewcommand{\arraystretch}{1.0}
+\begin{tabularx}{\linewidth}{>{\bfseries}l X}
+\toprule
+\textbf{Component} & \textbf{Value} \\
+\midrule
+Item 1 & Description 1 \\
+Item 2 & Description 2 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\vspace{-3ex} % Counteract baseline padding
+\end{block}
+
+\end{column}
+
+% --------------------------------------------------------
+% Column 2
+% --------------------------------------------------------
+\begin{column}{0.24\textwidth}
+
+\begin{block}{3. {{SECTION_3_TITLE}} (Figures)}
+% SKILL PITFALL FIX: Minipage figures instead of float figures
+\begin{figure}
+\begin{minipage}[t]{0.48\linewidth}
+    \centering
+    % Ensure images have white backgrounds using fix_colors.py before embedding
+    \includegraphics[width=\linewidth, keepaspectratio]{placeholder_image1.png}
+    \caption{\scriptsize {{FIGURE_1_CAPTION}}}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth, keepaspectratio]{placeholder_image2.png}
+    \caption{\scriptsize {{FIGURE_2_CAPTION}}}
+\end{minipage}
+\end{figure}
+\end{block}
+
+\end{column}
+
+% --------------------------------------------------------
+% Column 3
+% --------------------------------------------------------
+\begin{column}{0.24\textwidth}
+
+\begin{block}{4. Main Data Table}
+\begin{tcolorbox}[colback=green!5!white,colframe=green!50!black,title=\textbf{$\star$ Key Result Highlights},boxrule=1pt,top=2pt,bottom=2pt,left=4pt,right=4pt]
+\scriptsize
+Description of the table.
+
+\vspace{0.3ex}
+\begin{center}
+\scriptsize
+\renewcommand{\arraystretch}{0.85}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Strategy} & \textbf{Metric A} & \textbf{Metric B} & \textbf{Metric C} \\
+\midrule
+\rowcolor{gray!10} Baseline & 100\% & 1.00 & +0.01 \\
+\rowcolor{orange!30} \textbf{Proposed} & \textbf{20\%} & \textbf{4.65} & \textbf{-0.00} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{-0.5ex}\par\noindent{\scriptsize \textbf{Table 1:} Table description goes here.}
+\end{tcolorbox}
+\end{block}
+
+\end{column}
+
+% --------------------------------------------------------
+% Column 4 (Metrics & Footer)
+% --------------------------------------------------------
+\begin{column}{0.24\textwidth}
+
+\vspace{0.5ex}
+\begin{center}
+% Metrics Board
+\begin{tcolorbox}[equal height group=metrics,colback=white,colframe=black!60!green,boxrule=1.5pt,arc=6pt,left=2pt,right=2pt,top=6pt,bottom=6pt,width=0.31\linewidth,nobeforeafter,valign=center,halign=center]
+\textcolor{black!60!green}{\scriptsize \textbf{{{METRIC_1_NAME}}}}\\[0.5ex]
+\textcolor{black!80!green}{\large \textbf{{{METRIC_1_VALUE}}}}\\[0.5ex]
+\scriptsize {{METRIC_1_DESC}}
+\end{tcolorbox}
+\hfill
+\begin{tcolorbox}[equal height group=metrics,colback=white,colframe=black!60!green,boxrule=1.5pt,arc=6pt,left=2pt,right=2pt,top=6pt,bottom=6pt,width=0.33\linewidth,nobeforeafter,valign=center,halign=center]
+\textcolor{black!60!green}{\scriptsize \textbf{{{METRIC_2_NAME}}}}\\[0.5ex]
+\textcolor{black!80!green}{\Large \textbf{{{METRIC_2_VALUE}}}}\\[0.5ex]
+\scriptsize {{METRIC_2_DESC}}
+\end{tcolorbox}
+\hfill
+\begin{tcolorbox}[equal height group=metrics,colback=white,colframe=black!60!green,boxrule=1.5pt,arc=6pt,left=2pt,right=2pt,top=6pt,bottom=6pt,width=0.31\linewidth,nobeforeafter,valign=center,halign=center]
+\textcolor{black!60!green}{\scriptsize \textbf{{{METRIC_3_NAME}}}}\\[0.5ex]
+\textcolor{black!80!green}{\Large \textbf{{{METRIC_3_VALUE}}}}\\[0.5ex]
+\scriptsize {{METRIC_3_DESC}}
+\end{tcolorbox}
+\end{center}
+\vspace{-0.5ex}
+
+\begin{block}{5. Conclusion}
+\footnotesize
+\begin{itemize}
+    \setlength{\itemsep}{1pt}
+    \item \textbf{Point A:} {{CONCLUSION_1}}
+    \item \textbf{Point B:} {{CONCLUSION_2}}
+\end{itemize}
+\end{block}
+
+\vfill
+% ====================
+% Footer (Logos and Contact QR)
+% ====================
+\begin{center}
+  % SKILL PITFALL FIX: Use \raisebox{-0.5\height} to perfectly center-align logos horizontally
+  \raisebox{-0.5\height}{\includegraphics[height=5.3cm,keepaspectratio]{placeholder_logo1.png}}\hfill
+  \raisebox{-0.5\height}{\includegraphics[height=4.8cm,keepaspectratio]{placeholder_logo2.png}}\hfill
+  \raisebox{-0.5\height}{%
+    % SKILL PITFALL FIX: Use a negative inner raisebox (e.g., -3.3cm) to overlap with the block above without layout breakage. Do NOT use pushpins or rotations.
+    \raisebox{-3.3cm}[0pt][0pt]{%
+      \begin{tikzpicture}
+        \node[inner sep=2pt, draw=black!20, fill=white, drop shadow={opacity=0.3, shadow xshift=3pt, shadow yshift=-3pt}] (qr) {\includegraphics[height=8.5cm,keepaspectratio]{placeholder_qr.png}};
+        \node at ([yshift=0.4cm]qr.north) [font=\large\bfseries\color{black!80!green}] {Contact:};
+      \end{tikzpicture}%
+    }%
+  }
+\end{center}
+\vspace{0.5cm}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}
+\end{document}
