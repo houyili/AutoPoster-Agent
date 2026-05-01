@@ -77,25 +77,47 @@ Requires Python **3.8+**. Dependencies in `requirements.txt`:
 - `Pillow>=10.0.0` — Image processing for figure cleanup
 - `numpy>=1.26.0` — Used by figure background cleaner
 
-## Usage
+## Autonomous Agent Loop (New in v3)
 
-### Fully Automated Mode
+AutoPoster-Agent is now a fully autonomous **4-Step Agent Loop**:
+1. **Step 1 (Outliner)**: Reads your raw LaTeX paper source and extracts a structured `outline.md` (Motivation, Methods, Results, Figures to keep).
+2. **Step 2 (Generator)**: Fills the Beamer template to create `poster.tex` and compiles it.
+3. **Step 3 (Evaluator)**: Runs deterministic Python checks (missing figures, forbidden LaTeX syntax like `\begin{figure}`) and LLM Rubric checks (visual balance, text overlaps) to output a `problem.md` report.
+4. **Step 4 (Retry Loop)**: If the poster fails, the Generator is called again with the feedback to fix its mistakes. Maximum 3 retries.
+
+### Fully Automated Mode (End-to-End)
 
 ```bash
 source .venv/bin/activate
-python generate_poster.py examples/sample_outline.md
+python agent_loop.py path/to/your/paper.tex --figures-dir path/to/figures/
 ```
 
-**CLI Options:**
+If you already have an `outline.md` and want to skip Step 1:
+```bash
+python agent_loop.py outline.md --figures-dir path/to/figures/
+```
+
+### Manual Step-by-Step Execution
+
+You can run each agent individually:
+```bash
+# Step 1: Generate Outline
+python step1_outliner.py path/to/paper.tex -o outline.md
+
+# Step 2: Generate Poster
+python step2_generator.py outline.md --figures-dir path/to/figures/ -o poster.tex
+
+# Step 3: Evaluate Poster
+python step3_evaluator.py poster.tex outline.md -o problem.md
+```
+
+**CLI Options for `agent_loop.py`**:
 
 | Flag | Description | Default |
 |------|-------------|---------|
 | `--model` | LLM model name | `gpt-4o` |
 | `--base-url` | Custom API endpoint (for vLLM, Ollama, etc.) | OpenAI |
 | `--figures-dir` | Directory of images to embed | None |
-| `-o` / `--output` | Output `.tex` filename | `poster.tex` |
-| `--no-compile` | Skip PDF compilation | Off |
-| `--api-key` | Pass key directly (not recommended) | Keychain |
 
 **Examples:**
 
@@ -141,14 +163,18 @@ pdflatex poster.tex           # Alternative (requires texlive-full)
 
 ```
 AutoPoster-Agent/
-├── generate_poster.py              # Main runner script
+├── agent_loop.py                   # Master Orchestrator (Step 4 Retry loop)
+├── step1_outliner.py               # Outliner Agent
+├── step2_generator.py              # Generator Agent
+├── step3_evaluator.py              # Evaluator/Judge Agent
 ├── setup_keychain.py               # Secure API key storage
 ├── install.sh                      # One-click installer (macOS/Linux)
 ├── requirements.txt                # Python dependencies
 ├── templates/
 │   ├── academic_poster_template.tex  # Beamer template (185×90cm)
 │   └── prompt_sops/
-│       └── agent_sop.md              # Agent SOP (the "skill")
+│       ├── agent_sop.md              # Generator SOP
+│       └── rubric_evaluator.md       # Evaluator Rubric
 ├── tools/
 │   └── clean_figure_backgrounds.py   # Image background stripper
 └── examples/

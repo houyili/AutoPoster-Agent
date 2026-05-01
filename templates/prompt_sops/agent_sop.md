@@ -13,7 +13,9 @@ During previous poster construction phases, severe rendering and formatting issu
 1. **NEVER use the `\begin{table}` environment inside a Beamer `\begin{block}`.** The floating `table` environment injects massive, invisible `\abovecaptionskip` padding that breaks columns and pushes text off the page.
 2. **Use `\begin{center}` + `\begin{tabularx}` instead.** If you need a table, wrap it in a `center` environment.
 3. **Use Negative Vspace**: To tightly pack elements and counteract Beamer's default baseline paddings, strategically use `\vspace{-1ex}` to `\vspace{-3ex}`.
-4. **Minipage for Figures**: Never use `\begin{figure}` floats for side-by-side images. Use `minipage` inside a block to guarantee horizontal fit.
+4. **Minipage for Figures**: Never use `\begin{figure}` floats for images. Use `minipage` inside a block to guarantee horizontal fit.
+5. **Figure Sizing (CRITICAL)**: Never place two figures side-by-side (e.g., `0.48\linewidth`) if they contain complex curves or data. They will render too small in a 4-column layout. Stack them vertically using `0.9\linewidth` or use spanning blocks.
+6. **Text Overlap (CRITICAL)**: Never use aggressive negative `\vspace` (e.g., `-2ex`) directly below a `minipage` containing figures. This causes the text below to overlap with the figure captions. Use positive `\vspace{1ex}` to separate captions from body text if needed.
 
 ### Aesthetic Branding & Alignment
 1. **Header Alignment**: For badges in the header (like an "Oral" or "Spotlight" badge), use a `tcolorbox`. To perfectly align it with the main title, use negative vertical spacing right before the `tcolorbox`, and scale the inner text appropriately.

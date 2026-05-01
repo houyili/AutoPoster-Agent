@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-AutoPoster-Agent: Automated Academic Poster Generator
+AutoPoster-Agent Step 2: Generator Agent
 
-Reads your outline, retrieves your API key from the system keychain,
-calls an LLM to populate the LaTeX template following the SOP,
-and compiles the result into a PDF.
+Reads your outline, retrieves your API key, and calls an LLM to populate 
+the LaTeX template following the SOP. If a problem.md file exists (from Step 3), 
+it will use it to correct the previous mistakes.
+"""
 
 Supports any OpenAI-compatible API endpoint (OpenAI, Anthropic via proxy,
 local vLLM, Ollama, etc.) via --base-url.
@@ -58,9 +59,10 @@ def discover_figures(figures_dir):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="AutoPoster-Agent: Generate an academic poster from an outline."
+        description="Step 2: Generate an academic poster from an outline."
     )
     parser.add_argument("outline", help="Path to the outline markdown file.")
+    parser.add_argument("--problem", default="problem.md", help="Path to feedback file from Step 3.")
     parser.add_argument(
         "-o", "--output", default="poster.tex",
         help="Output .tex filename (default: poster.tex)"
@@ -94,7 +96,7 @@ def main():
     args = parse_args()
 
     print("=========================================")
-    print("  AutoPoster-Agent: Generating Poster")
+    print("  Step 2: Generator Agent")
     print("=========================================")
 
     # 1. Get API Key
@@ -121,6 +123,21 @@ def main():
     if figures_listing:
         print(f"🖼️  Found figures in: {args.figures_dir}")
 
+    # 3.5 Read problem.md if it exists
+    problem_feedback = ""
+    if os.path.isfile(args.problem):
+        problem_content = load_file(args.problem)
+        if problem_content.strip() and problem_content.strip() != "PASS":
+            print(f"⚠️  Found feedback in {args.problem}, adapting prompt to fix previous errors.")
+            problem_feedback = f"""
+CRITICAL FEEDBACK FROM PREVIOUS ATTEMPT:
+Your previous output failed the evaluator's checks. You MUST fix these issues in this iteration:
+---
+{problem_content}
+---
+Ensure you do not repeat the mistakes listed above!
+"""
+
     # 4. Build prompt
     prompt = f"""You are an expert LaTeX typesetter and academic poster designer.
 
@@ -135,6 +152,7 @@ LATEX TEMPLATE (fill in the placeholders):
 USER'S POSTER OUTLINE:
 {outline_content}
 {figures_listing}
+{problem_feedback}
 
 TASK:
 1. Read the SOP rules carefully — especially the anti-patterns around ghost padding.
