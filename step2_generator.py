@@ -53,8 +53,10 @@ def discover_figures(figures_dir):
     
     extensions = ("*.png", "*.jpg", "*.jpeg", "*.pdf", "*.svg")
     files = []
-    for ext in extensions:
-        files.extend(glob.glob(os.path.join(figures_dir, ext)))
+    for root, _, _ in os.walk(figures_dir):
+        for ext in extensions:
+            files.extend(glob.glob(os.path.join(root, ext)))
+    
     if not files:
         return ""
     
