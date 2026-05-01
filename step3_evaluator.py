@@ -45,6 +45,15 @@ def deterministic_checks(tex_content, outline_content):
         if fig_base not in tex_content:
             problems.append(f"MISSING FIGURE: The outline requested `{fig}` but it is not included in poster.tex via `\\includegraphics`.")
 
+    # 3. Check for PDF compilation failure
+    pdf_file = "poster.pdf" # Assuming the output is always named poster.pdf for the check, but let's be safe.
+    if not os.path.isfile(pdf_file) or os.path.exists("compilation_error.log"):
+        err_msg = "Unknown error."
+        if os.path.exists("compilation_error.log"):
+            with open("compilation_error.log", "r") as f:
+                err_msg = f.read()
+        problems.append(f"CRITICAL ERROR: The LaTeX code failed to compile into a PDF. Tectonic output:\n```\n{err_msg}\n```\nYou MUST fix the LaTeX syntax or missing figure paths.")
+
     return problems
 
 def evaluate_poster(tex_file, outline_file, output_file, model="gpt-4o", base_url=None):

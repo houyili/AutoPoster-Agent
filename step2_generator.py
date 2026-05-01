@@ -229,7 +229,13 @@ TASK:
                     print(f"🎉 Success! PDF generated: {pdf_name}")
             else:
                 print("⚠️  Compilation failed. Errors:")
-                print(result.stderr[-2000:] if len(result.stderr) > 2000 else result.stderr)
+                err_msg = result.stderr[-2000:] if len(result.stderr) > 2000 else result.stderr
+                print(err_msg)
+                with open("compilation_error.log", "w") as f:
+                    f.write(err_msg)
+        finally:
+            if 'result' in locals() and result.returncode == 0 and os.path.exists("compilation_error.log"):
+                os.remove("compilation_error.log")
         except FileNotFoundError:
             print("⚠️  'tectonic' not found. Please compile manually:")
             print(f"   tectonic {args.output}")
