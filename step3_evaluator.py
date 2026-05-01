@@ -59,9 +59,9 @@ def evaluate_poster(tex_file, outline_file, output_file, model="gpt-4o", base_ur
     print("🔍 Running Python Deterministic Checks...")
     problems = deterministic_checks(tex_content, outline_content)
 
-    api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY")
+    api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        print("❌ Error: API Key not found.")
+        print("❌ Error: API Key not found in keychain or OPENAI_API_KEY env var. Run 'python setup_keychain.py'.")
         sys.exit(1)
 
     prompt = f"""You are the Evaluator Agent. Evaluate the following generated LaTeX code against the Rubric and Outline.

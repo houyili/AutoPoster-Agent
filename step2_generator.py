@@ -102,10 +102,9 @@ def main():
     # 1. Get API Key
     api_key = args.api_key
     if not api_key:
-        api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY")
+        api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        print("❌ Error: API Key not found.")
-        print("   Option 1: Run 'python setup_keychain.py' to store it securely.")
+        print("❌ Error: API Key not found in keychain or OPENAI_API_KEY env var. Run 'python setup_keychain.py'.")
         print("   Option 2: Pass --api-key <KEY> (not recommended for security).")
         sys.exit(1)
 

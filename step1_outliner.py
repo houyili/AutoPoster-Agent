@@ -42,9 +42,9 @@ def load_tex_files(source_path):
     return content
 
 def generate_outline(paper_content, output_file, model="gpt-4o", base_url=None):
-    api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY")
+    api_key = keyring.get_password(SERVICE_NAME, "OPENAI_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        print("❌ Error: API Key not found in keychain. Run 'python setup_keychain.py'.")
+        print("❌ Error: API Key not found in keychain or OPENAI_API_KEY env var. Run 'python setup_keychain.py'.")
         sys.exit(1)
 
     prompt = f"""You are an expert Academic Poster Synthesizer Agent.
