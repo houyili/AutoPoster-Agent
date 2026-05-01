@@ -233,12 +233,12 @@ TASK:
                 print(err_msg)
                 with open("compilation_error.log", "w") as f:
                     f.write(err_msg)
-        finally:
-            if 'result' in locals() and result.returncode == 0 and os.path.exists("compilation_error.log"):
-                os.remove("compilation_error.log")
         except FileNotFoundError:
             print("⚠️  'tectonic' not found. Please compile manually:")
             print(f"   tectonic {args.output}")
+        finally:
+            if 'result' in locals() and result.returncode == 0 and os.path.exists("compilation_error.log"):
+                os.remove("compilation_error.log")
     else:
         print("⏭️  Skipping compilation (--no-compile).")
 
