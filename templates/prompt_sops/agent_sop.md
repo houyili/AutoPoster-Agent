@@ -14,7 +14,7 @@ During previous poster construction phases, severe rendering and formatting issu
 2. **Use `\begin{center}` + `\begin{tabularx}` instead.** If you need a table, wrap it in a `center` environment.
 3. **Use Negative Vspace**: To tightly pack elements and counteract Beamer's default baseline paddings, strategically use `\vspace{-1ex}` to `\vspace{-3ex}`.
 4. **Minipage for Figures**: Never use `\begin{figure}` floats for images. Use `minipage` inside a block to guarantee horizontal fit.
-5. **Figure Sizing (CRITICAL)**: Never place two figures side-by-side (e.g., `0.48\linewidth`) if they contain complex curves or data. They will render too small in a 4-column layout. Stack them vertically using `0.9\linewidth` or use spanning blocks.
+5. **Figure Sizing (CRITICAL)**: Never place two figures side-by-side (e.g., `0.48\linewidth`) if they contain complex curves or data. They will render too small in a 3-column layout. Stack them vertically using `0.9\linewidth` or use spanning blocks.
 6. **Text Overlap (CRITICAL)**: Never use aggressive negative `\vspace` (e.g., `-2ex`) directly below a `minipage` containing figures. This causes the text below to overlap with the figure captions. Use positive `\vspace{1ex}` to separate captions from body text if needed.
 
 ### Aesthetic Branding & Alignment
@@ -34,6 +34,7 @@ Before finalizing the poster, the AI Agent MUST perform a rigorous self-audit:
 2. **Grammar & Typo Correction**: If the user-provided outline contains typos, you must silently correct the grammar/spelling in the poster but **never invent or alter empirical experimental data**.
 3. **Citation Audit**: Ensure all references have their full author list and accurate identifiers (e.g., `arXiv` ID, DOI) verified before inclusion.
 4. **Visual Build Audit**: After running `tectonic` or `pdflatex`, you MUST check the terminal output for `Overfull \vbox` or `Undefined control sequence` errors. A successful exit code (0) is not enough; warnings about layout vertical overflow must be addressed by tuning `\vspace` or `\scalebox`.
+5. **Image Extensions (CRITICAL)**: Always explicitly add `.png` to the `\includegraphics` paths (e.g. `\includegraphics{figure.png}`). Matplotlib `.pdf` exports often lack embedded fonts, causing `nullfont` missing character errors in `tectonic`. Do NOT omit the extension.
 
 ## 4. Automation Scripts (Embedded Tools)
 
